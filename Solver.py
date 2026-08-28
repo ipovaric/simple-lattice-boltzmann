@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot
 
-plot_every = n
+plot_every = 5
 
 def distance(x1, y1, x2, y2):
     return np.sqrt((x2-x1)**2 + (y2-y1)**2)
@@ -10,7 +10,7 @@ def main():
     Nx = 400
     Ny = 100
     tau = 0.53 # kinematic viscosity and time scale
-    Nt = 3000
+    Nt = 30000
 
     # lattice speeds and weights
     NL = 9
@@ -37,6 +37,10 @@ def main():
     # main loop
     for it in range(Nt):
         print(it) 
+
+        # wall boundary conditions (zou-he condition)
+        F[:, -1, [6, 7, 8]] = F[:, -2, [6, 7, 8]]
+        F[:, 0, [2, 3, 4]] = F[:, 1, [2, 3, 4]]
 
         # streaming to neighboring lattices
         for i, cx, cy in zip(range(NL), cxs, cys):
@@ -65,7 +69,11 @@ def main():
         F = F + -(1/tau) * (F-Feq)
 
         if(it%plot_every == 0):
-            pyplot.imshow(np.sqrt(ux**2+uy**2))
+            dfydx = ux[2:, 1:-1] - ux[0:-2, 1:-1]   # curl of x 
+            dfxdy = uy[1:-1, 2:] - uy[1:-1, 0:-2]   # curl of y
+            curl = dfydx - dfxdy
+            pyplot.imshow(curl, cmap="bwr")
+            # pyplot.imshow(np.sqrt(ux**2+uy**2))
             pyplot.pause(0.01)
             pyplot.cla()
 
