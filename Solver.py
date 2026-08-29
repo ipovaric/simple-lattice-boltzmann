@@ -6,7 +6,7 @@ plot_every = 20
 def distance(x1, y1, x2, y2):
     return np.sqrt((x2-x1)**2 + (y2-y1)**2)
 
-def makeCircle(Nx,Ny,cyl_size):
+def makeCircle(Nx,Ny,cyl_size=None):
     """ Create a circular cylinder obstacle"""
 
     # init mask
@@ -15,7 +15,8 @@ def makeCircle(Nx,Ny,cyl_size):
     # define origin
     cyl_x_origin = Nx//4        # 1/4 dist in x
     cyl_y_origin = Ny//2        # 1/2 dist in y
-    # cyl_size = 20
+    if cyl_size is None:
+        cyl_size = 20
 
     for y in range(0, Ny):
         for x in range(0, Nx):
@@ -43,12 +44,41 @@ def makeEllipse(Nx,Ny,x_radius,y_radius,x_origin=None,y_origin=None):
 
     return ellipse
 
+def initPlots(Nx,Ny):
+    # --- setup, once, before the simulation loop ---
+    fig, (ax1, ax2) = pyplot.subplots(2, 1, figsize=(12, 5))
+
+    # initialize with placeholder data
+    im1 = ax1.imshow(np.zeros((Ny - 2, Nx - 2)), cmap="bwr")
+    ax1.set_title("Curl")
+    fig.colorbar(im1, ax=ax1)
+
+    im2 = ax2.imshow(np.zeros((Ny, Nx)), cmap="viridis")
+    ax2.set_title("Speed")
+    fig.colorbar(im2, ax=ax2)
+
+    pyplot.tight_layout()
+    pyplot.ion()   # interactive mode on, helps with live updating
+    pyplot.show()
+
+    return [fig,im1,im2]
+
+def updatePlots(fig,im1,im2,curl,velocity):
+    im1.set_data(curl)
+    im1.set_clim(curl.min(), curl.max())   # rescale color range each frame
+
+    im2.set_data(velocity)
+    im2.set_clim(velocity.min(),velocity.max())
+
+    fig.canvas.draw_idle()
+
 def main():
     Nx = 400
     Ny = 100
     tau = 0.53 # kinematic viscosity and time scale
     # tau = 0.6           # collision timescale
-    Nt = 30000          # duration of simulation
+    # Nt = 30000          # duration of simulation
+    Nt = 1000          # duration of simulation
 
     # lattice speeds and weights
     NL = 9
@@ -64,6 +94,8 @@ def main():
     # obstacle
     # obstacle = makeCircle(Nx,Ny,13)     # circular cylinder
     obstacle = makeEllipse(Nx,Ny,6,12)      # ellipsoid cylinder
+
+    [fig,im1,im2] = initPlots(Nx,Ny)
 
     # main loop
     for it in range(Nt):
@@ -103,10 +135,15 @@ def main():
             dfydx = ux[2:, 1:-1] - ux[0:-2, 1:-1]   # curl of x 
             dfxdy = uy[1:-1, 2:] - uy[1:-1, 0:-2]   # curl of y
             curl = dfydx - dfxdy
-            pyplot.imshow(curl, cmap="bwr")
-            # pyplot.imshow(np.sqrt(ux**2+uy**2))
-            pyplot.pause(0.01)
-            pyplot.cla()
+            velocity = np.sqrt(ux**2 + uy**2)
+
+            updatePlots(fig,im1,im2,curl,velocity)
+            # axs[0].imshow(curl, cmap="bwr")
+            # axs[1].imshow(np.sqrt(ux**2+uy**2))
+            # axs[0].pause(0.01)
+            # axs[1].pause(0.01)
+            # axs[0].cla()
+            # axs[1].cla()
 
 if __name__ == "__main__":
     main()
