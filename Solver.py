@@ -6,6 +6,24 @@ plot_every = 20
 def distance(x1, y1, x2, y2):
     return np.sqrt((x2-x1)**2 + (y2-y1)**2)
 
+def makeCylinder(Nx,Ny,cyl_size):
+    """ Create a cylinder obstacle"""
+
+    # init mask
+    cylinder = np.full((Ny, Nx), False)
+
+    # define origin
+    cyl_x_origin = Nx//4        # 1/4 dist in x
+    cyl_y_origin = Ny//2        # 1/2 dist in y
+    # cyl_size = 20
+
+    for y in range(0, Ny):
+        for x in range(0, Nx):
+            if(distance(cyl_x_origin, cyl_y_origin, x, y) < cyl_size):
+                cylinder[y][x] = True
+
+    return cylinder
+
 def main():
     Nx = 400
     Ny = 100
@@ -25,16 +43,9 @@ def main():
     F[:, :, 3] = 3.1    # init flow rate
 
     # obstacle
-    cylinder = np.full((Ny, Nx), False)     # init a mask for entire domain
-
-    for y in range(0, Ny):
-        for x in range(0, Nx):
-            # define origin and size of cylinder
-            cyl_x_origin = Nx//4
-            cyl_y_origin = Ny//2
-            cyl_size = 20
-            if(distance(cyl_x_origin, cyl_y_origin, x, y) < cyl_size):
-                cylinder[y][x] = True
+    # obstacle = np.full((Ny, Nx), False)     # init a mask for entire domain
+    obstacle = makeCylinder(Nx,Ny,13)
+    
 
     # main loop
     for it in range(Nt):
@@ -50,7 +61,7 @@ def main():
             F[:, :, i] = np.roll(F[:, :, i], cy, axis = 0)
 
         # set collision boundary conditions (opposites)
-        bndryF = F[cylinder, :]
+        bndryF = F[obstacle, :]
         bndryF = bndryF[:, [0, 5, 6, 7, 8, 1, 2, 3, 4]] # set to opposite direction
 
         # fluid variables
@@ -58,9 +69,9 @@ def main():
         ux = np.sum(F * cxs, 2) / rho
         uy = np.sum(F * cys, 2) / rho
 
-        F[cylinder, :] = bndryF     # set velocities to opposites on the boundary
-        ux[cylinder] = 0            # vel w/in boundry 
-        uy[cylinder] = 0            # vel w/in boundry 
+        F[obstacle, :] = bndryF     # set velocities to opposites on the boundary
+        ux[obstacle] = 0            # vel w/in boundry 
+        uy[obstacle] = 0            # vel w/in boundry 
 
         # collision
         Feq = np.zeros(F.shape)
