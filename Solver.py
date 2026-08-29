@@ -6,8 +6,8 @@ plot_every = 20
 def distance(x1, y1, x2, y2):
     return np.sqrt((x2-x1)**2 + (y2-y1)**2)
 
-def makeCylinder(Nx,Ny,cyl_size):
-    """ Create a cylinder obstacle"""
+def makeCircle(Nx,Ny,cyl_size):
+    """ Create a circular cylinder obstacle"""
 
     # init mask
     cylinder = np.full((Ny, Nx), False)
@@ -24,11 +24,30 @@ def makeCylinder(Nx,Ny,cyl_size):
 
     return cylinder
 
+def makeEllipse(Nx,Ny,x_radius,y_radius,x_origin=None,y_origin=None):
+    """ Create an ellipsoid cylinder obstacle"""
+
+    # init mask
+    ellipse = np.full((Ny, Nx), False)
+
+    # define origin
+    if x_origin is None:
+        x_origin = Nx//4        # 1/4 dist in x
+    if y_origin is None:
+        y_origin = Ny//2        # 1/2 dist in y
+
+    for y in range(0, Ny):
+        for x in range(0, Nx):
+            if(((x-x_origin)/x_radius)**2 + ((y-y_origin)/y_radius)**2) < 1:
+                ellipse[y][x] = True
+
+    return ellipse
+
 def main():
     Nx = 400
     Ny = 100
-    # tau = 0.53 # kinematic viscosity and time scale
-    tau = 0.6           # collision timescale
+    tau = 0.53 # kinematic viscosity and time scale
+    # tau = 0.6           # collision timescale
     Nt = 30000          # duration of simulation
 
     # lattice speeds and weights
@@ -40,12 +59,11 @@ def main():
     # initial conditions
     F = np.ones((Ny, Nx, NL)) + 0.01 * np.random.randn(Ny, Nx, NL)
     # F[:, :, 3] = 2.9    # init flow rate
-    F[:, :, 3] = 3.1    # init flow rate
+    F[:, :, 3] = 2.3    # init flow rate
 
     # obstacle
-    # obstacle = np.full((Ny, Nx), False)     # init a mask for entire domain
-    obstacle = makeCylinder(Nx,Ny,13)
-    
+    # obstacle = makeCircle(Nx,Ny,13)     # circular cylinder
+    obstacle = makeEllipse(Nx,Ny,6,12)      # ellipsoid cylinder
 
     # main loop
     for it in range(Nt):
