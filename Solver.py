@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot
 
-plot_every = 5
+plot_every = 20
 
 def distance(x1, y1, x2, y2):
     return np.sqrt((x2-x1)**2 + (y2-y1)**2)
@@ -9,8 +9,9 @@ def distance(x1, y1, x2, y2):
 def main():
     Nx = 400
     Ny = 100
-    tau = 0.53 # kinematic viscosity and time scale
-    Nt = 30000
+    # tau = 0.53 # kinematic viscosity and time scale
+    tau = 0.6           # collision timescale
+    Nt = 30000          # duration of simulation
 
     # lattice speeds and weights
     NL = 9
@@ -20,7 +21,8 @@ def main():
 
     # initial conditions
     F = np.ones((Ny, Nx, NL)) + 0.01 * np.random.randn(Ny, Nx, NL)
-    F[:, :, 3] = 2.3    # init flow rate
+    # F[:, :, 3] = 2.9    # init flow rate
+    F[:, :, 3] = 3.1    # init flow rate
 
     # obstacle
     cylinder = np.full((Ny, Nx), False)     # init a mask for entire domain
@@ -30,7 +32,7 @@ def main():
             # define origin and size of cylinder
             cyl_x_origin = Nx//4
             cyl_y_origin = Ny//2
-            cyl_size = 13
+            cyl_size = 20
             if(distance(cyl_x_origin, cyl_y_origin, x, y) < cyl_size):
                 cylinder[y][x] = True
 
