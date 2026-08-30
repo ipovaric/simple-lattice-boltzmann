@@ -100,13 +100,14 @@ def main():
 
     # obstacle
     # obstacle = makeCircle(Nx,Ny,13)     # circular cylinder
-    obstacle = makeEllipse(Nx,Ny,6,12)      # ellipsoid cylinder
+    # obstacle = makeEllipse(Nx,Ny,6,12)      # ellipsoid cylinder
+    obstacle = makeEllipse(Nx,Ny,12,6)      # parallel ellipsoid cylinder
 
     [fig,im1,im2] = initPlots(Nx,Ny)
 
     # main loop
     for it in range(Nt):
-        print(it) 
+        # print(it) 
 
         # wall boundary conditions (zou-he condition)
         F[:, -1, [6, 7, 8]] = F[:, -2, [6, 7, 8]]
@@ -139,18 +140,13 @@ def main():
         F = F + -(1/tau) * (F-Feq)
 
         if(it%plot_every == 0):
+            print(it) 
             dfydx = ux[2:, 1:-1] - ux[0:-2, 1:-1]   # curl of x 
             dfxdy = uy[1:-1, 2:] - uy[1:-1, 0:-2]   # curl of y
             curl = dfydx - dfxdy
             velocity = np.sqrt(ux**2 + uy**2)
 
             [fig,im1,im2] = updatePlots(fig,im1,im2,curl,velocity)
-            # axs[0].imshow(curl, cmap="bwr")
-            # axs[1].imshow(np.sqrt(ux**2+uy**2))
-            # axs[0].pause(0.01)
-            # axs[1].pause(0.01)
-            # axs[0].cla()
-            # axs[1].cla()
 
 if __name__ == "__main__":
     main()
