@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib
+matplotlib.use("TkAgg")
 from matplotlib import pyplot
 
 plot_every = 20
@@ -58,8 +60,10 @@ def initPlots(Nx,Ny):
     fig.colorbar(im2, ax=ax2)
 
     pyplot.tight_layout()
-    pyplot.ion()   # interactive mode on, helps with live updating
-    pyplot.show()
+    pyplot.show(block=False)
+    # pyplot.ion()   # interactive mode on, helps with live updating
+    fig.canvas.draw()
+    fig.canvas.flush_events()
 
     return [fig,im1,im2]
 
@@ -70,15 +74,18 @@ def updatePlots(fig,im1,im2,curl,velocity):
     im2.set_data(velocity)
     im2.set_clim(velocity.min(),velocity.max())
 
-    fig.canvas.draw_idle()
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+
+    return [fig,im1,im2]
 
 def main():
     Nx = 400
     Ny = 100
     tau = 0.53 # kinematic viscosity and time scale
     # tau = 0.6           # collision timescale
-    # Nt = 30000          # duration of simulation
-    Nt = 1000          # duration of simulation
+    Nt = 30000          # duration of simulation
+    # Nt = 1000          # duration of simulation
 
     # lattice speeds and weights
     NL = 9
@@ -137,7 +144,7 @@ def main():
             curl = dfydx - dfxdy
             velocity = np.sqrt(ux**2 + uy**2)
 
-            updatePlots(fig,im1,im2,curl,velocity)
+            [fig,im1,im2] = updatePlots(fig,im1,im2,curl,velocity)
             # axs[0].imshow(curl, cmap="bwr")
             # axs[1].imshow(np.sqrt(ux**2+uy**2))
             # axs[0].pause(0.01)
